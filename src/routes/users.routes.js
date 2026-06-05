@@ -1,6 +1,5 @@
 import express from "express";
 import { requireAuth } from "../middleware/auth.js";
-
 import {
   getUsers,
   createUser,
@@ -22,19 +21,21 @@ router.get("/", async (req, res, next) => {
     next(err);
   }
 });
-router.post("/", requireAuth, async (req, res, next) => {
-  try {
-    const user = await createUser(req.body);
-    res.status(201).json(user);
-  } catch (err) {
-    next(err);
-  }
-});
+
 router.get("/:id", async (req, res, next) => {
   try {
     const user = await getUserById(req.params.id);
     if (!user) return res.status(404).json({ message: "Not found" });
     res.status(200).json(user);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/", requireAuth, async (req, res, next) => {
+  try {
+    const user = await createUser(req.body);
+    res.status(201).json(user);
   } catch (err) {
     next(err);
   }
@@ -49,11 +50,12 @@ router.put("/:id", requireAuth, async (req, res, next) => {
     next(err);
   }
 });
+
 router.delete("/:id", requireAuth, async (req, res, next) => {
   try {
     const ok = await deleteUser(req.params.id);
     if (!ok) return res.status(404).json({ message: "Not found" });
-    res.status(204).send();
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     next(err);
   }

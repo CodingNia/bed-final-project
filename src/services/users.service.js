@@ -21,14 +21,21 @@ export async function getUsers({ username, email } = {}) {
 export async function createUser(data) {
   const { username, password, name, email, phoneNumber, role } = data ?? {};
 
-  if (!username || !password || !name || !email || !phoneNumber || !role) {
+  if (!username || !password || !name || !email || !phoneNumber) {
     const err = new Error("Missing required fields");
-    err.status = 500;
+    err.status = 400;
     throw err;
   }
 
-  const created = await prisma.user.create({
-    data: { username, password, name, email, phoneNumber, role },
+  return prisma.user.create({
+    data: {
+      username,
+      password,
+      name,
+      email,
+      phoneNumber,
+      role: role ?? "USER",
+    },
     select: {
       id: true,
       username: true,
@@ -38,8 +45,6 @@ export async function createUser(data) {
       role: true,
     },
   });
-
-  return created;
 }
 
 export async function getUserById(id) {
@@ -58,8 +63,11 @@ export async function getUserById(id) {
 
 export async function updateUser(id, data) {
   const clean = Object.fromEntries(
-    Object.entries(data ?? {}).filter(([, v]) => v !== undefined)
+    Object.entries(data ?? {}).filter(([, v]) => v !== undefined),
   );
+
+  delete clean.pictureUrl;
+
   try {
     return await prisma.user.update({
       where: { id },
@@ -80,6 +88,10 @@ export async function updateUser(id, data) {
 
 export async function deleteUser(id) {
   try {
+    // Eerst de bookings en reviews van de user verwijderen voordat ik de user zelf verwijder.
+    // SQLite doet dit niet automatisch.
+    await prisma.booking.deleteMany({ where: { userId: id } });
+    await prisma.review.deleteMany({ where: { userId: id } });
     await prisma.user.delete({ where: { id } });
     return true;
   } catch {

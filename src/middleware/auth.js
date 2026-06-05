@@ -2,12 +2,11 @@ import jwt from "jsonwebtoken";
 
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization;
-
-  if (!header || !header.startsWith("Bearer ")) {
+  if (!header) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const token = header.slice("Bearer ".length);
+  const token = header.startsWith("Bearer ") ? header.slice(7) : header;
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
