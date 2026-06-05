@@ -2,11 +2,18 @@ import { prisma } from "../prisma/client.js";
 
 export async function getProperties({ location, pricePerNight } = {}) {
   const where = {};
-  if (location) where.location = location;
+
+  if (location) {
+    where.location = {
+      contains: location,
+    };
+  }
+
   if (pricePerNight !== undefined && pricePerNight !== "") {
     const n = Number(pricePerNight);
     if (!Number.isNaN(n)) where.pricePerNight = n;
   }
+
   return prisma.property.findMany({ where });
 }
 
