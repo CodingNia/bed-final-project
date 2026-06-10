@@ -1,4 +1,5 @@
 import { prisma } from "../prisma/client.js";
+import bcrypt from "bcrypt";
 
 export async function getHosts({ name } = {}) {
   const where = {};
@@ -43,7 +44,7 @@ export async function createHost(data) {
   return prisma.host.create({
     data: {
       username,
-      password,
+      password: await bcrypt.hash(password, 10),
       name,
       email,
       phoneNumber,
@@ -67,6 +68,10 @@ export async function updateHost(id, data) {
 
   delete clean.pictureUrl;
   delete clean.aboutMe;
+
+  if (clean.password) {
+    clean.password = await bcrypt.hash(clean.password, 10);
+  }
 
   try {
     return await prisma.host.update({

@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -23,7 +24,7 @@ async function main() {
       data: {
         id: u.id,
         username: u.username,
-        password: u.password,
+        password: await bcrypt.hash(u.password, 10),
         name: u.name,
         email: u.email,
         phoneNumber: u.phoneNumber,
@@ -37,7 +38,7 @@ async function main() {
       data: {
         id: h.id,
         username: h.username,
-        password: h.password,
+        password: await bcrypt.hash(h.password, 10),
         name: h.name,
         email: h.email,
         phoneNumber: h.phoneNumber,

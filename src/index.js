@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import * as Sentry from "@sentry/node";
@@ -48,7 +49,7 @@ app.post("/login", async (req, res, next) => {
       where: { username },
     });
 
-    if (!user || user.password !== password) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -76,6 +77,6 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-app.listen(3000, () => {
+app.listen(3000, "0.0.0.0", () => {
   console.log("Server is listening on port 3000");
 });

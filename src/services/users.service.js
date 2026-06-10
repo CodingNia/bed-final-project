@@ -1,4 +1,5 @@
 import { prisma } from "../prisma/client.js";
+import bcrypt from "bcrypt";
 
 export async function getUsers({ username, email } = {}) {
   const where = {};
@@ -30,7 +31,7 @@ export async function createUser(data) {
   return prisma.user.create({
     data: {
       username,
-      password,
+      password: await bcrypt.hash(password, 10),
       name,
       email,
       phoneNumber,
@@ -67,6 +68,10 @@ export async function updateUser(id, data) {
   );
 
   delete clean.pictureUrl;
+
+  if (clean.password) {
+    clean.password = await bcrypt.hash(clean.password, 10);
+  }
 
   try {
     return await prisma.user.update({
